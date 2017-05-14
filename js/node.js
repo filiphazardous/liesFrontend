@@ -35,14 +35,29 @@ const node_hal_tpl = (function IIFE() {
     tpl._embedded[c_web_site + '/rest/relation/node/' + c_type_lie + '/' + c_field_img] = [{
         _links: {
             self: {href: null},
-     //       type: {href: c_web_site + '/rest/type/file/file'}
+            //       type: {href: c_web_site + '/rest/type/file/file'}
         },
-     //   uuid: [{value: null}],
-     //   uri: [{value: null}]
+        //   uuid: [{value: null}],
+        //   uri: [{value: null}]
     }];
     return tpl;
 })();
 
+const file_hal_tpl = (function IIFE() {
+    return {
+        _links: {
+            type: {
+                href: c_web_site + '/rest/type/file/image'
+            }
+        },
+        filename: [{
+            value: ''
+        }],
+        data: [{
+            value: ''
+        }]
+    };
+})();
 
 function Node(i_node) {
     bugme.assert(typeof(i_node) === "object", "Invalid parameter when initializing Node\n" + bugme.dump(i_node));
@@ -68,7 +83,7 @@ function Node(i_node) {
 
     var _get_created = function () {
         var ret_val = _node_hal.created ? _node_hal.created[0].value : 0;
-        bugme.log("Created: " + ret_val);
+        //bugme.log("Created: " + ret_val);
         return ret_val;
     };
 
@@ -107,7 +122,27 @@ function Node(i_node) {
     };
 
     this.getImage = function () {
-        return _node_hal._links[_img_field] ? _node_hal._links[_img_field][0].href : null;
+        if (!_node_hal._links[_img_field]) return '';
+
+        var i = _node_hal._embedded[_img_field][0];
+        var imgUuidClass = 'image-' + i.uuid[0].value;
+        //bugme.log('Generated tag for:' + imgUuidClass);
+
+        $.ajax({
+            type: 'GET',
+            url: _node_hal._links[_img_field][0].href
+        }).done(function (response) {
+            bugme.assert(typeof(response) === 'object' && response._links, 'getImage got invalid response:' + bugme.dump(response));
+            var imageSrc = response.uri[0].value
+                .replace(/public:\/\//, c_web_site + '/sites/default/files/');
+            var imgSelector = '.' + imgUuidClass;
+            $(imgSelector).attr('src', imageSrc);
+        }).fail(function (xhr, err, exception) {
+            bugme.log('Failed to get image!');
+        });
+
+
+        return '<img class="item-proof ' + imgUuidClass + '" alt="' + i.alt + '"/>'
     };
 
     this.getUserId = function () {
@@ -130,8 +165,7 @@ function Node(i_node) {
             };
             throw(e);
         }
-        var ret_val = parseInt(match[0]);
-        return ret_val;
+        return parseInt(match[0]);
     };
 
     this.getJSON = function () {
@@ -141,7 +175,7 @@ function Node(i_node) {
     this.render = function () {
         return '<div id="' + _get_created() + '" class="item-lie col-lg-8 col-lg-offset-2">'
             + '<div class="item-title"><span>' + self.getTitle() + '</span></div>'
-            + (self.getImage() ? ('<img class="item-proof"  src="' + self.getImage() + '"/>') : '')
+            + self.getImage()
             + '<a href="#" onClick="g_fsm.stalk(' + self.getUserId() + ');">'
             + '<div class="item-liar">Who lied?</div></a>'
             + '</div>';
@@ -171,17 +205,19 @@ function Node(i_node) {
         bugme.log('Save a node!');
         _node_hal = node_hal_tpl;
         _node_hal.title[0].value = i_node.title;
-        if (false && i_node.img_uri && i_node.img_uuid) {
-            _node_hal._links[_img_field][0].href = i_node.img_uri;
-//            _node_hal._embedded[_img_field][0]._links.self.href = i_node.img_uri;
-            _node_hal._embedded[_img_field][0].uri = i_node.img_uri;
-            _node_hal._embedded[_img_field][0].uuid = i_node.img_uuid;
+        if (i_node._img_hal) {
+            _node_hal._links[_img_field] = [{
+                href: i_node._img_hal._links.self.href
+            }];
+            _node_hal._embedded[_img_field] = [{
+                uuid: i_node._img_hal.uuid
+            }];
         }
         // Make an ajax call to save the object
         bugme.log(_node_hal);
         var userData = JSON.parse(localStorage.getItem(c_userdata_key));
         $.ajax({
-            beforeSend: function (xhr, type) {
+            beforeSend: function (xhr) {
                 xhr.setRequestHeader("Authorization", g_fsm.user().getAuth());
             },
             headers: {

@@ -97,6 +97,7 @@ function BrowseState(i_state) {
     self.update();
 }
 
+
 // Display all about the individual you want to stalk
 function StalkState(i_state) {
     bugme.assert(typeof(i_state) === "object", "Invalid parameter when initializing StalkState\n" + bugme.dump(i_state));
@@ -178,6 +179,7 @@ function StalkState(i_state) {
         _cleanup();
     };
 }
+
 
 // Take care of logging in/out or editing preferences
 function LoginState(i_state) {
@@ -339,203 +341,6 @@ function LoginState(i_state) {
     spinner.hide();
 }
 
-// Take care of snapping and uploading images
-function ImageState(i_state) {
-    bugme.assert(typeof(i_state) === "object", "Invalid parameter when initializing ImageState\n" + bugme.dump(i_state));
-    bugme.assert(i_state.sibling, "ImageState inappropriately called. Missing sibling");
-    bugme.log("Created ImageState");
-    State.apply(this, arguments);
-
-
-    // Private consts and vars
-    var self = this;
-    var sibling = i_state.sibling;
-    var form_build_id = null;
-    var load_form_count = 0;
-    var upload_img_count = 0;
-    const max_load_form = 5;
-    var spinner = $('#spinner');
-    var proof_btn = $('#get-your-proof');
-    var proof_elm = $('#your-proof');
-    var alive = true;
-    var local_img_uri = null;
-    const hack_upload_uri = c_web_site + '/hack-upload-form';
-
-
-    // Private class
-    function FormParams() {
-        if (!form_build_id) {
-            throw(new Error("No sensible img_build_id"));
-        }
-        this.form_build_id = form_build_id;
-        this.form_id = 'hack_upload_form';
-        this.op = 'Upload';
-    }
-
-
-    // Private funcs
-    function _cleanup() {
-        bugme.log("ImageState _cleanup called");
-        sibling = null;
-        spinner.hide();
-    }
-
-    function _upload_image() {
-        var img_file_name_matches = local_img_uri.match(/.*\/(\w+\.jpg)/);
-        var img_file_name = img_file_name_matches[1];
-        bugme.log("File name part of " + local_img_uri + " is img_file_name");
-
-        // Start uploading pic in the background
-        var form_params = new FormParams();
-        var options = new FileUploadOptions();
-        options.fileKey = "files[new_file]";
-        options.fileName = img_file_name;
-        options.mimeType = "image/jpeg";
-        options.headers = {
-            Authorization: self.parent().user().getAuth(),
-            Host: c_host,
-            Connection: "keep-alive",
-            Referer: hack_upload_uri
-        };
-
-        options.params = form_params;
-
-        bugme.log('' + bugme.dump(options));
-
-        var ft = new FileTransfer();
-        ft.upload(
-            local_img_uri,
-            hack_upload_uri,
-            _success_form_upload,
-            _fail_form_upload,
-            options,
-            true // debug!
-        );
-    }
-
-    function _success(img_uri) {
-        bugme.log("Camera success");
-        if (!alive) return;
-        local_img_uri = img_uri;
-        spinner.hide();
-        proof_btn.hide();
-        proof_elm.attr('src', img_uri);
-        proof_elm.show();
-        self.done();
-    }
-
-    function _fail() {
-        bugme.log("Camera fail");
-        if (!alive) return;
-        spinner.hide();
-        self.cancel();
-    }
-
-    function _success_form_id(data) {
-        if (!alive) return;
-        var matches = /name="form_build_id"\s+value="(form-.+?)"/gm.exec(data);
-        if (matches && matches.length) {
-            form_build_id = matches[1];
-            bugme.log('Form build id:' + form_build_id);
-        }
-        else {
-            bugme.log('Bad regex!!!?');
-        }
-    }
-
-    function _fail_form_id() {
-        if (alive) {
-            if (++load_form_count <= max_load_form) {
-                _fetch_image_upload_form();
-            } else {
-                alert("Can't reach server, so can't upload image");
-            }
-        }
-    }
-
-    function _success_form_upload(data) {
-        if (!alive) return;
-        var response = JSON.parse(data.response);
-        if (typeof(response) === "object" && response.uuid) {
-            sibling.setProof(response, self);
-        } else {
-            bugme.log("Bad image upload response\n" + bugme.dump(response))
-        }
-        _cleanup();
-    }
-
-    function _fail_form_upload(err) {
-        if (!alive) return;
-        bugme.log("Failed to upload image:" + err);
-        if (++upload_img_count <= max_load_form) {
-            _upload_image();
-        } else { // Give up
-            alert("Failed to upload image after trying " + max_load_form + "\nVery trying indeed");
-            _cleanup();
-            alive = false;
-        }
-    }
-
-    function _fetch_image_upload_form() {
-        $.ajax({
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader("Authorization", self.parent().user().getAuth());
-            },
-            url: hack_upload_uri,
-            type: 'GET'
-        }).done(_success_form_id).fail(_fail_form_id);
-    }
-
-
-    // Public funcs
-    this.name = function () {
-        return this.constructor.name;
-    }
-
-    this.update = false;
-
-    this.cancel = function (new_state) {
-        if (new_state && new_state !== c_submit_state) {
-            self.parent().switchState({state: new_state});
-        } else {
-            self.parent().switchState({state: c_submit_state, resume: sibling});
-        }
-        _cleanup();
-    };
-
-    this.done = function () {
-        _upload_image();
-        self.parent().switchState({state: c_submit_state, resume: sibling});
-    };
-
-    // Initialize state
-    _fetch_image_upload_form();
-
-    if (navigator.camera && navigator.camera.getPicture) {
-        navigator.camera.getPicture(_success, _fail,
-            {
-                quality: 75,
-                destinationType: Camera.DestinationType.FILE_URI,
-                sourceType: Camera.PictureSourceType.CAMERA,
-                mediaType: Camera.MediaType.PICTURE,
-                encodingType: Camera.EncodingType.JPEG,
-                targetWidth: 800,
-                targetHeight: 800,
-                cameraDirection: Camera.Direction.BACK,
-                correctOrientation: true,
-                saveToPhotoAlbum: false
-            });
-    } else {
-        alert("You lied!\nThere's no camera here...");
-    }
-
-    // TODO: Add other desktop platforms here (for debugging)
-    if (navigator.platform === "MacIntel") {
-        setTimeout(_fail, 500);
-    }
-
-    bugme.log("ImageState finished");
-}
 
 // Take care of entering and uploading lies
 function LieState(i_state) {
@@ -549,12 +354,10 @@ function LieState(i_state) {
     var spinner = $('#spinner');
     var input_lie = $('#brand-new-lies');
     var btn_tell = $('#tell-the-world');
-    var btn_snap = $('#get-your-proof');
+    var proof_input = $('#get-your-proof');
     var proof_elm = $('#your-proof');
     var event_sel = "click tap";
-    var sibling = null;
     var node = null;
-    const proof_base_uri = c_web_site + "/sites/default/files/";
 
 
     // Private funcs
@@ -566,17 +369,21 @@ function LieState(i_state) {
 
     function _cleanup() {
         bugme.log("LieState _cleanup called");
+
         // Reset all input fields
         $('#tell-a-lie input').each(function () {
             $(this).val($(this).attr('def_label'));
+            $(this).off('change');
         });
+
         // Show all buttons, and turn off their actions
         $('#tell-a-lie a').each(function () {
             $(this).show();
             $(this).off(event_sel);
         });
+
         proof_elm.attr('src', proof_elm.attr('def_src'));
-        sibling = null;
+
         bugme.log("LieState _cleanup finished");
     }
 
@@ -594,11 +401,6 @@ function LieState(i_state) {
         return this.constructor.name;
     };
 
-    this.setProof = function (i_upload_obj, i_sib) {
-        proof = i_upload_obj;
-        sibling = i_sib; // Keep around for cleanup
-    };
-
     this.update = false;
 
     this.cancel = function (new_state) {
@@ -610,26 +412,65 @@ function LieState(i_state) {
         if (!_verify_input()) return;
         spinner.show();
 
-        var node_input = {title: input_lie.val(), cb: _submit_cb};
-        if (proof) {
-            node_input.img_uri = proof.uri.replace('public://', proof_base_uri);
-            node_input.img_uuid = proof.uuid;
-        }
+        var node_input = {
+            title: input_lie.val(),
+            _img_hal: proof,
+            cb: _submit_cb
+        };
+
         node = new Node(node_input);
 
         self.parent().switchState({state: c_browse_state});
         _cleanup();
     };
 
+
     // Initialize state
+
     btn_tell.on(event_sel, function () {
         self.done();
         return false;
     });
 
-    btn_snap.on(event_sel, function () {
-        self.parent().switchState({state: c_image_state, sibling: self});
-        return false;
+    proof_input.on('change', function () {
+
+        if (!proof_input[0].files || proof_input[0].files.length === 0) return;
+        var fileItem = proof_input[0].files[0];
+        var _img_hal = file_hal_tpl;
+        _img_hal.filename[0].value = fileItem.name;
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+
+            // Assign the binary file data to img src and to the hal object
+            proof_elm.attr('src', e.target.result);
+            _img_hal.data[0].value = e.target.result.replace(/data\:image\/\w+;base64,/, '');
+
+            // Upload the file
+            var userData = JSON.parse(localStorage.getItem(c_userdata_key));
+            $.ajax({
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", g_fsm.user().getAuth());
+                },
+                headers: {
+                    'Content-Type': "application/hal+json",
+                    'X-CSRF-Token': userData.csrf_token
+                },
+                type: 'POST',
+                data: JSON.stringify(_img_hal),
+                url: c_web_site + '/entity/file?_format=hal_json'
+            }).done(function(response){
+
+                bugme.log('Succeded uploading image');
+                proof = response;
+            }).fail(function(xhr, err){
+
+                bugme.log('Failed to upload image');
+                bugme.log(err);
+            });
+        };
+
+        reader.readAsDataURL(fileItem);
     });
 
     spinner.hide();

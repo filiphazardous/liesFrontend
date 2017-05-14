@@ -49,7 +49,6 @@ function FSM(i_platform) {
         }
         switch (i_state) {
             case c_stalk_state:
-            case c_image_state:
             case c_submit_state:
                 return false;
             default:
@@ -90,9 +89,6 @@ function FSM(i_platform) {
             case c_login_state:
                 platform.setPage(c_login_page);
                 current_state = new LoginState({parent: self, data: i_switch.data});
-                break;
-            case c_image_state:
-                current_state = new ImageState({parent: self, sibling: current_state});
                 break;
             case c_submit_state:
                 platform.setPage(c_submit_page);
