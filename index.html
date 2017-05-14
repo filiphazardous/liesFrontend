@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content="Lies! Is the evil twin of the other photo based microblog."/>
+    <meta name="author" content="Any and all liars"/>
+    <title>Lies!</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css"/>
+    <link rel="stylesheet" href="css/lies-bootstrap.css" type="text/css"/>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <nav id="app-toolbar">
+            <ul class="nav nav-pills pull-right">
+                <li role="presentation" id="btn-user"><a href="#">User</a></li>
+                <li role="presentation" id="btn-back"><a href="#">Back</a></li>
+                <li role="presentation" id="btn-refresh"><a href="#">Refresh</a></li>
+            </ul>
+        </nav>
+    </div>
+    <img id="spinner" src="img/spinner.gif"/>
+
+    <div id="latest-lies" class="lies-page">
+        <div class="row">
+            <img class="lies-logo col-lg-12" src="img/lies.png"/>
+        </div>
+        <div id="list-of-lies" class="enclosure row"></div>
+    </div>
+
+    <div id="check-a-liar" class="lies-page">
+        <div class="row">
+            <img class="lies-logo" class="col-lg-12" src="img/lies.png"/>
+        </div>
+        <div id="list-of-liars-lies" class="enclosure row"></div>
+    </div>
+
+    <div id="identity-lies" class="lies-page">
+        <div class="row">
+            <img class="lies-logo" class="col-lg-12" src="img/lies.png"/>
+        </div>
+        <div class="enclosure row">
+            <div class="col-lg-6 col-lg-offset-3">
+                <input id="register-alias" type="text" def_label="Your Alias" value="Your Alias"/>
+            </div>
+            <div class="col-lg-6 col-lg-offset-3">
+                <input id="register-password" class="col-lg-6 col-lg-offset-3" type="password" def_label="Your Password"
+                       value="Your Password"/>
+            </div>
+            <div class="col-lg-6 col-lg-offset-3">
+                <button id="btn-login">Login Liar</button>
+            </div>
+            <div class="col-lg-6 col-lg-offset-3">
+                <button id="btn-logout">Logout Liar</button>
+            </div>
+            <div class="col-lg-6 col-lg-offset-3">
+                <button id="btn-help">Help!</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="application/javascript" charset="UTF-8" src="js/jquery-1.11.1.min.js"></script>
+<script type="application/javascript" charset="UTF-8" src="js/jquery.textfill.min.js"></script>
+<script type="application/javascript" charset="UTF-8" src="js/jquery.base64.js"></script>
+<script type="application/javascript" charset="UTF-8" src="js/bootstrap.js"></script>
+<script type="application/javascript" charset="UTF-8" src="js/debug.js"></script>
+<script type="application/javascript" charset="UTF-8" src="js/user.js"></script>
+<script type="application/javascript" charset="UTF-8" src="js/node.js"></script>
+<script type="application/javascript" charset="UTF-8" src="js/states.js"></script>
+<script type="application/javascript" charset="UTF-8" src="js/lies.js"></script>
+<script type="application/javascript" charset="UTF-8" src="js/platform.js"></script>
+
+</body>
+</html>
+

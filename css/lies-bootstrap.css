@@ -1,0 +1,131 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    padding-top: 25px;
+}
+
+.lies-logo {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 5%;
+    margin-bottom: 5%;
+    width: 90%;
+    height: auto;
+    max-height: 35%;
+}
+
+#spinner {
+    position: fixed;
+    top: 50%;
+    left: 40%;
+    right: 40%;
+    z-index: 20000;
+    height: auto;
+    width: 20%;
+}
+
+.enclosure {
+    display: block;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#list-of-lies,
+#list-of-liars-lies {
+    padding: 5%;
+    padding-bottom: 40%;
+}
+
+.item-tagline {
+    padding: 0;
+    margin: 0;
+    line-height: 75%;
+    clear: both;
+}
+
+.item-lie {
+    display: box;
+    margin: 1em;
+    padding: 0;
+    /*clear: both;*/
+    margin-bottom: 4em;
+    /*float: left;*/
+}
+
+.item-title span {
+    text-transform: uppercase;
+    font-weight: 900;
+    /*font-size: 1.8em;*/
+    font-family: "Arial Black", Arial, Helvetica, sans-serif;
+    display: box;
+    width: 100%;
+    max-height: 150px;
+    padding-top: 0;
+    line-height: 75%;
+}
+
+
+
+.item-proof {
+    display: block;
+    /*width: auto;*/
+    margin: auto;
+    width: 100%;
+    height: auto;
+}
+
+.item-liar {
+    display: block;
+    float: right;
+}
+
+#your-proof {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10%;
+    margin-bottom: 10%;
+    width: 80%;
+    height: auto;
+}
+
+#app-toolbar {
+    position: fixed;
+    z-index: 20000;
+    left: 0;
+    top: 0;
+    height: auto;
+    width: 100%;
+    background-color: rgba(255,255,255,0.75);
+}
+
+#identity-lies input,
+#identity-lies button
+{
+    width: 100%;
+}
+
+#btn-back {
+    display: none;
+}
+
+/* Responsive: Portrait tablets and up */
+@media screen and (min-width: 768px) {
+    /* Remove the padding we set earlier */
+    .header,
+    .marketing,
+    .footer {
+        padding-right: 0;
+        padding-left: 0;
+    }
+    /* Space out the masthead */
+    .header {
+        margin-bottom: 30px;
+    }
+    /* Remove the bottom border on the jumbotron for visual effect */
+    .jumbotron {
+        border-bottom: 0;
+    }
+}
