@@ -60,6 +60,9 @@ function User(i_user) {
 
     var _fail = function (xhr, err, exception) {
         bugme.log(err);
+        bugme.log(xhr);
+        bugme.log(exception);
+        bugme.log(xhr.getAllResponseHeaders());
         if (err.match(/parsererror/)) {
             bugme.log("Continue anyway");
             return _success("Continue anyway");
@@ -76,7 +79,6 @@ function User(i_user) {
 
     this.getAuth = function () {
         var ret_val = 'Basic ' + btoa(self.getName() + ':' + _get_pass());
-        bugme.log('Auth: ' + ret_val);
         return ret_val;
     };
 
@@ -134,25 +136,29 @@ function User(i_user) {
     } else if (i_user.name && i_user.pass) {
         // TODO: Come up with a way to get a more complete version of _this_ users data from server as a response
         // A simple login
-        _user_hal = user_hal_tpl;
-        _user_hal.name[0].value = i_user.name;
-        _user_hal.pass[0].value = i_user.pass;
+        var loginJson = {
+            name: i_user.name,
+            pass: i_user.pass
+        };
 
-        // Make an ajax call to check the supplied credentials
-        var test_dest = c_web_site + '/user/1?' + c_response_format;
-        bugme.log('Test dest:' + test_dest);
-        $.support.cors = true;
+        var login_uri = c_web_site + '/user/login?_format=json'; // N.b We don't use hal here!!!
+        //$.support.cors = true;
         $.ajax({
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader("Authorization", self.getAuth());
-            },
-            //     xhrFields: {
-            //       withCredentials: true
-            // },
-            type: 'GET',
-            url: test_dest
-        }).done(_success)
-            .fail(_fail);
+            type: 'POST',
+            url: login_uri,
+            dataType: 'json',
+            data: JSON.stringify(loginJson)
+        }).done(function(data, status, xhr){
+            var userdata = data;
+            localStorage.setItem(c_userdata_key, JSON.stringify(userdata));
+
+            // Store user data for internal use
+            _user_hal = user_hal_tpl;
+            _user_hal.name[0].value = i_user.name;
+            _user_hal.pass[0].value = i_user.pass;
+
+            _success(data);
+        }).fail(_fail);
     } else {
         throw(new Error("Invalid members of user object"));
     }

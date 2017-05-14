@@ -24,9 +24,6 @@ const node_hal_tpl = (function IIFE() {
     var tpl = {
         type: [{target_id: c_type_lie}],
         title: [{value: null}],
-        status: [{value: 1}],
-        promote: [{value: 1}],
-        sticky: [{value: 0}],
         _links: {
             type: {
                 href: c_web_site + '/rest/type/node/' + c_type_lie
@@ -34,14 +31,14 @@ const node_hal_tpl = (function IIFE() {
         },
         _embedded: {}
     };
-    tpl._links.type[c_web_site + '/rest/relation/node/' + c_type_lie + '/' + c_field_img] = [{href: null}];
+    //tpl._links.type[c_web_site + '/rest/relation/node/' + c_type_lie + '/' + c_field_img] = [{href: null}];
     tpl._embedded[c_web_site + '/rest/relation/node/' + c_type_lie + '/' + c_field_img] = [{
         _links: {
             self: {href: null},
-            type: {href: c_web_site + '/rest/type/file/file'}
+     //       type: {href: c_web_site + '/rest/type/file/file'}
         },
-        uuid: [{value: null}],
-        uri: [{value: null}]
+     //   uuid: [{value: null}],
+     //   uri: [{value: null}]
     }];
     return tpl;
 })();
@@ -60,7 +57,7 @@ function Node(i_node) {
     var _ready = false;
 
     // Private consts
-    const _submit_node_uri = c_web_site + '/entity/node/?' + c_response_format;
+    const _submit_node_uri = c_web_site + '/entity/node?' + c_response_format;
     const _get_node_uri = c_web_site + '/node/';
     const _img_field = c_web_site + '/rest/relation/node/' + c_type_lie + '/' + c_field_img;
     const _user_field = c_web_site + '/rest/relation/node/' + c_type_lie + '/uid';
@@ -87,13 +84,17 @@ function Node(i_node) {
     };
 
     var _success = function (msg) {
+        bugme.log('Success');
+        bugme.log(msg);
         _ready = true;
         _always_cb();
     };
 
     var _fail = function (xhr, err, exception) {
+        bugme.log('Fail');
         bugme.log(err);
-        bugme.log(bugme.dump(exception));
+        bugme.log(exception);
+        bugme.log(xhr.getAllResponseHeaders());
         if (err.match(/parsererror/)) {
             return _success("Continue anyway");
         }
@@ -167,21 +168,25 @@ function Node(i_node) {
         }).done(_success_get).fail(_fail);
     } else if (i_node.title) {
         // Create new or edit existing object (eg change password)
+        bugme.log('Save a node!');
         _node_hal = node_hal_tpl;
         _node_hal.title[0].value = i_node.title;
-        if (i_node.img_uri && i_node.img_uuid) {
+        if (false && i_node.img_uri && i_node.img_uuid) {
             _node_hal._links[_img_field][0].href = i_node.img_uri;
 //            _node_hal._embedded[_img_field][0]._links.self.href = i_node.img_uri;
             _node_hal._embedded[_img_field][0].uri = i_node.img_uri;
             _node_hal._embedded[_img_field][0].uuid = i_node.img_uuid;
         }
         // Make an ajax call to save the object
+        bugme.log(_node_hal);
+        var userData = JSON.parse(localStorage.getItem(c_userdata_key));
         $.ajax({
-            beforeSend: function (xhr) {
+            beforeSend: function (xhr, type) {
                 xhr.setRequestHeader("Authorization", g_fsm.user().getAuth());
             },
             headers: {
-                'Content-Type': "application/hal+json"
+                'Content-Type': "application/hal+json",
+                'X-CSRF-Token': userData.csrf_token
             },
             type: 'POST',
             data: JSON.stringify(_node_hal),

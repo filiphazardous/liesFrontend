@@ -62,7 +62,7 @@ function FSM(i_platform) {
     // data (for stalk and login states),
     // resume (for coming back to resume from image)
     this.switchState = function (i_switch) {
-        bugme.assert(typeof(i_switch) == "object", "FSM.switchState called with inappropriate arguments\n"+bugme.dump(i_switch));
+        bugme.assert(typeof(i_switch) === "object", "FSM.switchState called with inappropriate arguments\n"+bugme.dump(i_switch));
         bugme.assert(i_switch.state && i_switch.state > c_init_state && i_switch.state < c_max_state,
             "FSM.switchState called with invalid state argument");
         spinner.show();
@@ -102,7 +102,7 @@ function FSM(i_platform) {
                 // Impossible to reach
         }
 
-        if (current_state_id != c_browse_state) {
+        if (current_state_id !== c_browse_state) {
             btn_back.show();
         } else {
             btn_back.hide();
@@ -152,14 +152,14 @@ function FSM(i_platform) {
     // Init FSM
     // Bind focus and blur to all input fields
     var _focus_input = function (elm) {
-        if ($(this).attr('def_label') == $(this).val()) {
+        if ($(this).attr('def_label') === $(this).val()) {
             $(this).val('');
         }
         return false;
     };
 
     var _blur_input = function (elm) {
-        if ($(this).val() == '') {
+        if ($(this).val() === '') {
             $(this).val($(this).attr('def_label'));
         }
         return false;
@@ -193,7 +193,7 @@ function FSM(i_platform) {
 
     if (window.localStorage) {
         var user_hal_loaded = JSON.parse(window.localStorage.getItem("user"));
-        if (user_hal_loaded != null) {
+        if (user_hal_loaded !== null) {
             current_user = new User(user_hal_loaded);
         }
     }

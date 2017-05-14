@@ -70,6 +70,10 @@ function BootstrapPlatform() {
             case c_login_page:
                 $("#identity-lies").show();
                 break;
+            case c_image_page:
+            case c_submit_page:
+                $('#tell-a-lie').show();
+                break;
             default:
                 bugme.assert(false, "Invalid page request");
         }

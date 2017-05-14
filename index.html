@@ -14,6 +14,7 @@
     <div class="header">
         <nav id="app-toolbar">
             <ul class="nav nav-pills pull-right">
+                <li role="presentation" id="btn-add"><a href="#">Tell something</a></li>
                 <li role="presentation" id="btn-user"><a href="#">User</a></li>
                 <li role="presentation" id="btn-back"><a href="#">Back</a></li>
                 <li role="presentation" id="btn-refresh"><a href="#">Refresh</a></li>
@@ -59,6 +60,20 @@
             </div>
         </div>
     </div>
+
+    <div id="tell-a-lie" class="lies-page">
+        <div class="row">
+            <img class="lies-logo" class="col-lg-12" src="img/lies.png"/>
+        </div>
+        <div class="enclosure row">
+            <h2>Snap some picture evidence</h2>
+            <input id="get-your-proof" type="file" accept="image/*" capture="camera" />
+            <img id="your-proof" src="img/no_image.png" def_src="img/no_image.png"/>
+            <input id="brand-new-lies" type="text" def_label="Tell me lies, tell me sweet little lies..."
+                   value="Tell me lies, tell me sweet little lies..."/>
+            <button id="tell-the-world">Tell the world!</button>
+        </div>
+    </div>
 </div>
 <script type="application/javascript">
     const c_debug = true;
@@ -80,6 +95,9 @@
     const c_type_lie = 'lies';
     const c_field_img = 'field_image';
     const c_response_format = '_format=hal_json';
+
+    // Other
+    const c_userdata_key = 'USER_DATA_STORAGE';
 </script>
 <script type="application/javascript" charset="UTF-8" src="js/jquery-1.11.1.min.js"></script>
 <script type="application/javascript" charset="UTF-8" src="js/jquery.textfill.min.js"></script>

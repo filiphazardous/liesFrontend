@@ -21,7 +21,7 @@ function State(i_state) {
 
     this.name = function () {
         return this.constructor.name;
-    }
+    };
 
     this.update = function () {
         bugme.log("Override function update() in class!");
@@ -73,7 +73,7 @@ function BrowseState(i_state) {
     // Public funcs
     this.name = function () {
         return this.constructor.name;
-    }
+    };
 
     this.update = function () {
         bugme.log("Browse update");
@@ -151,7 +151,7 @@ function StalkState(i_state) {
     // Public funcs
     this.name = function () {
         return this.constructor.name;
-    }
+    };
 
     // Load this users lies
     this.update = function () {
@@ -176,7 +176,7 @@ function StalkState(i_state) {
         bugme.log("Stalk cancel");
         self.parent().switchState({state: new_state?new_state:c_browse_state});
         _cleanup();
-    }
+    };
 }
 
 // Take care of logging in/out or editing preferences
@@ -242,7 +242,7 @@ function LoginState(i_state) {
     // Public funcs
     this.name = function () {
         return this.constructor.name;
-    }
+    };
 
     this.update = false;
 
@@ -282,6 +282,7 @@ function LoginState(i_state) {
 
     // Initialize state
     if (current_user) {
+        bugme.log('Initialize state');
         input_alias.val(current_user.getName());
         var mail = current_user.getMail() ? current_user.getMail() : input_email.attr('def_label');
         input_email.val(mail);
@@ -591,7 +592,7 @@ function LieState(i_state) {
     // Public funcs
     this.name = function () {
         return this.constructor.name;
-    }
+    };
 
     this.setProof = function (i_upload_obj, i_sib) {
         proof = i_upload_obj;
