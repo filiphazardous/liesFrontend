@@ -1,4 +1,7 @@
 // Constants
+/*
+const c_debug = true;
+
 const c_init_state = 0;
 const c_browse_state = 1;
 const c_stalk_state = 2;
@@ -7,8 +10,15 @@ const c_image_state = 4;
 const c_submit_state = 5;
 const c_max_state = 6;
 
-const c_host = 'lies.hazardous.se';
-const c_web_site = 'http://' + c_host;
+
+// Server definitions
+const c_host = 'lies.pixiecoder.com';
+const c_web_site = 'http://' + (c_debug ? 'dev.' : '') + c_host + (c_debug ? ':8080' : '');
+
+// Server configuration
+const c_type_lie = 'lies';
+const c_field_img = 'field_image';
+*/
 
 // Initializing globals
 var g_fsm = null;

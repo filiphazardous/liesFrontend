@@ -3,19 +3,22 @@
  */
 
 
-const user_hal_tpl = {
-    "_links": {"type": {"href": "http:\/\/lies.hazardous.se\/rest\/type\/user\/user"}},
-    "name": [{"value": null}],
-    "mail": [{"value": null}],
-    "pass": [{"value": null}],
-    "status": [{"value": 1}]
-};
+const user_hal_tpl = (function IIFE() {
+    var tpl = {
+        _links: {type: {href: c_web_site + '/rest\/type\/user\/user'}},
+        name: [{value: null}],
+        mail: [{value: null}],
+        pass: [{value: null}],
+        status: [{value: 1}]
+    };
+    return tpl;
+})();
 
 
 // User is a value object, it will either GET, POST or PATCH on initialization
 // and it can't be changed after initialization has finished
 function User(i_user) {
-    bugme.assert(typeof(i_user) == "object", "Invalid parameter when initializing User\n" + bugme.dump(i_user));
+    bugme.assert(typeof(i_user) === "object", "Invalid parameter when initializing User\n" + bugme.dump(i_user));
     // i_user is an object with one of the following setups
     // 1) A full hal object (no callback possible, instantly ready)
     // 2) name, mail, pass, edit (defaults to false), method (defaults to POST), cb (optional)
@@ -43,7 +46,7 @@ function User(i_user) {
     };
 
     var _success_get = function (response) {
-        bugme.assert(typeof(response) == "object" && response._links, "There's no such user");
+        bugme.assert(typeof(response) === "object" && response._links, "There's no such user");
         _user_hal = response;
         _ready = true;
         _always_cb();
@@ -87,7 +90,7 @@ function User(i_user) {
 
     this.render = function () {
         return '<div class="item-lie"><div class="item-tagline">The Liar is:</div>'
-            +'<div class="item-title"><span>' + self.getName() + "</span></div></div>";
+            + '<div class="item-title"><span>' + self.getName() + "</span></div></div>";
     };
 
     this.isReady = function () {
@@ -150,9 +153,9 @@ function User(i_user) {
             headers: {
                 Accept: 'application/hal+json'
             },
-       //     xhrFields: {
-         //       withCredentials: true
-           // },
+            //     xhrFields: {
+            //       withCredentials: true
+            // },
             type: 'GET',
             url: c_web_site + '/user/1'
         }).done(_success)

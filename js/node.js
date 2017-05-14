@@ -7,46 +7,48 @@ function hal_type(hal_obj) {
     bugme.assert(hal_obj._links, "Object is not a hal object\n" + bugme.dump(hal_obj));
     bugme.assert(hal_obj._links.type, "HAL object invalid. Has no type declaration" + bugme.dump(hal_obj));
 
-    if (hal_obj._links.type.href == "http:\/\/lies.hazardous.se\/rest\/type\/node\/a_lie") {
+    if (hal_obj._links.type.href === c_web_site + '/rest/type/node/' + c_type_lie) {
         return 'Node';
     }
-    if (hal_obj._links.type.href == "http:\/\/lies.hazardous.se\/rest\/type\/file\/file") {
+    if (hal_obj._links.type.href === c_web_site + '/rest/type/file/file') {
         return 'File';
     }
-    if (hal_obj._links.type.href == "http:\/\/lies.hazardous.se\/rest\/type\/user\/user") {
+    if (hal_obj._links.type.href === c_web_site + '/rest/type/user/user') {
         return 'User';
     }
     return 'Unknown';
 }
 
 
-const node_hal_tpl = {
-    "_links": {
-        "type": {"href": "http:\/\/lies.hazardous.se\/rest\/type\/node\/a_lie"},
-        "http:\/\/lies.hazardous.se\/rest\/relation\/node\/a_lie\/field_the_proof": [{"href": null}]
-    },
-    "type": [{"target_id": "a_lie"}],
-    "title": [{"value": null}],
-    "_embedded": {
-        "http:\/\/lies.hazardous.se\/rest\/relation\/node\/a_lie\/field_the_proof": [
-            {
-                "_links": {
-                    "self": {"href": null},
-                    "type": {"href": "http:\/\/lies.hazardous.se\/rest\/type\/file\/file"}
-                },
-                "uuid": [{"value": null}],
-                "uri": [{"value": null}]
+const node_hal_tpl = (function IIFE() {
+    var tpl = {
+        type: [{target_id: c_type_lie}],
+        title: [{value: null}],
+        status: [{value: 1}],
+        promote: [{value: 1}],
+        sticky: [{value: 0}],
+        _links: {
+            type: {
+                href: c_web_site + '/rest/type/node/' + c_type_lie
             }
-        ]
-    },
-    "status": [{"value": "1"}],
-    "promote": [{"value": "1"}],
-    "sticky": [{"value": "0"}]
-};
+        },
+        _embedded: {}
+    };
+    tpl._links.type[c_web_site + '/rest/relation/node/' + c_type_lie + '/' + c_field_img] = [{href: null}];
+    tpl._embedded[c_web_site + '/rest/relation/node/' + c_type_lie + '/' + c_field_img] = [{
+        _links: {
+            self: {href: null},
+            type: {href: c_web_site + '/rest/type/file/file'}
+        },
+        uuid: [{value: null}],
+        uri: [{value: null}]
+    }];
+    return tpl;
+})();
 
 
 function Node(i_node) {
-    bugme.assert(typeof(i_node) == "object", "Invalid parameter when initializing Node\n" + bugme.dump(i_node));
+    bugme.assert(typeof(i_node) === "object", "Invalid parameter when initializing Node\n" + bugme.dump(i_node));
     // i_node is an object with one of the following setups
     // 1) A full hal object (no callback possible, instantly ready)
     // 2) title, img_uri (defaults to null), img_uuid (defaults to null), cb (optional)
@@ -60,8 +62,8 @@ function Node(i_node) {
     // Private consts
     const _submit_node_uri = c_web_site + '/entity/node/';
     const _get_node_uri = c_web_site + '/node/';
-    const _img_field = "http:\/\/lies.hazardous.se\/rest\/relation\/node\/a_lie\/field_the_proof";
-    const _user_field = "http:\/\/lies.hazardous.se\/rest\/relation\/node\/a_lie\/uid";
+    const _img_field = c_web_site + '/rest/relation/node/' + c_type_lie + '/' + c_field_img;
+    const _user_field = c_web_site + '/rest/relation/node/' + c_type_lie + '/uid';
 
     // Private functions
     var _always_cb = i_node.cb ? i_node.cb : function () {
@@ -74,7 +76,7 @@ function Node(i_node) {
     };
 
     var _success_get = function (response) {
-        if (typeof(response) == 'object' && response._links) {
+        if (typeof(response) === 'object' && response._links) {
             _node_hal = response;
             _ready = true;
         } else {
@@ -108,8 +110,25 @@ function Node(i_node) {
     };
 
     this.getUserId = function () {
+        if (!_node_hal._links[_user_field]) {
+            var e = {
+                name: 'INCOMPATIBLE_FORMAT',
+                message: 'Expected field: ' + _user_field,
+                data: _node_hal._links
+            };
+            throw(e);
+        }
         var user_link = _node_hal._links[_user_field][0].href;
-        var match = user_link.match(/\d+$/);
+        var match = user_link.match(/\d+(\?.*)?$/);
+        if (!match || match.length === 0) {
+            bugme.log(match);
+            var e = {
+                name: 'INVALID_USER_ID',
+                message: 'Can\'t find valid user id, expected numerical match',
+                data: user_link
+            };
+            throw(e);
+        }
         var ret_val = parseInt(match[0]);
         return ret_val;
     };
@@ -120,11 +139,11 @@ function Node(i_node) {
 
     this.render = function () {
         return '<div id="' + _get_created() + '" class="item-lie col-lg-8 col-lg-offset-2">'
-        + '<div class="item-title"><span>' + self.getTitle() + '</span></div>'
-        + (self.getImage() ? ('<img class="item-proof"  src="' + self.getImage() + '"/>') : '')
-        + '<a href="#" onClick="g_fsm.stalk(' + self.getUserId() + ');">'
-        + '<div class="item-liar">Who lied?</div></a>'
-        + '</div>';
+            + '<div class="item-title"><span>' + self.getTitle() + '</span></div>'
+            + (self.getImage() ? ('<img class="item-proof"  src="' + self.getImage() + '"/>') : '')
+            + '<a href="#" onClick="g_fsm.stalk(' + self.getUserId() + ');">'
+            + '<div class="item-liar">Who lied?</div></a>'
+            + '</div>';
     };
 
     this.isReady = function () {
@@ -138,7 +157,7 @@ function Node(i_node) {
         _node_hal = i_node;
         _ready = true;
     } else if (i_node.nid) {
-        bugme.assert(typeof(i_node.nid) == "number" && i_node.nid > 0, "Invalid node id supplied");
+        bugme.assert(typeof(i_node.nid) === "number" && i_node.nid > 0, "Invalid node id supplied");
         // Make an ajax call to load the object from the server
         var load_uri = _get_node_uri + i_node.nid;
         bugme.log("Load:" + load_uri);
