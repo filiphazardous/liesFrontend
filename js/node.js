@@ -60,7 +60,7 @@ function Node(i_node) {
     var _ready = false;
 
     // Private consts
-    const _submit_node_uri = c_web_site + '/entity/node/';
+    const _submit_node_uri = c_web_site + '/entity/node/?' + c_response_format;
     const _get_node_uri = c_web_site + '/node/';
     const _img_field = c_web_site + '/rest/relation/node/' + c_type_lie + '/' + c_field_img;
     const _user_field = c_web_site + '/rest/relation/node/' + c_type_lie + '/uid';
@@ -159,12 +159,9 @@ function Node(i_node) {
     } else if (i_node.nid) {
         bugme.assert(typeof(i_node.nid) === "number" && i_node.nid > 0, "Invalid node id supplied");
         // Make an ajax call to load the object from the server
-        var load_uri = _get_node_uri + i_node.nid;
+        var load_uri = _get_node_uri + i_node.nid + '?' + c_response_format;
         bugme.log("Load:" + load_uri);
         $.ajax({
-            headers: {
-                Accept: 'application/hal+json'
-            },
             type: 'GET',
             url: load_uri
         }).done(_success_get).fail(_fail);
@@ -184,7 +181,6 @@ function Node(i_node) {
                 xhr.setRequestHeader("Authorization", g_fsm.user().getAuth());
             },
             headers: {
-                Accept: "application/hal+json",
                 'Content-Type': "application/hal+json"
             },
             type: 'POST',

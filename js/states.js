@@ -4,7 +4,7 @@
 
 
 function State(i_state) {
-    bugme.assert(typeof(i_state) == "object", "Invalid parameter when initializing State (basic)\n" + bugme.dump(i_state));
+    bugme.assert(typeof(i_state) === "object", "Invalid parameter when initializing State (basic)\n" + bugme.dump(i_state));
     // i_state is an object with at least the following parameters
     // next_state, is the which this state should transition to when closed (-1 means to save state)
     // parent, is the FSM which arbitrates between states
@@ -40,12 +40,12 @@ function State(i_state) {
 // There can only be one! This state is never killed (as long as the app is running)
 // Thus, it has no next state - but is simply sleeping when other states are active
 function BrowseState(i_state) {
-    bugme.assert(typeof(i_state) == "object", "Invalid parameter when initializing BrowseState\n" + bugme.dump(i_state));
+    bugme.assert(typeof(i_state) === "object", "Invalid parameter when initializing BrowseState\n" + bugme.dump(i_state));
     State.apply(this, arguments);
 
     // Private vars and consts
     var self = this;
-    const list_uri = c_web_site + '/latest-lies';
+    const list_uri = c_web_site + '/latest-lies?' + c_response_format;
     var list_elm = $('#list-of-lies');
     var spinner = $('#spinner');
 
@@ -79,9 +79,6 @@ function BrowseState(i_state) {
         bugme.log("Browse update");
         spinner.show();
         $.ajax({
-            headers: {
-                Accept: "application/hal+json"
-            },
             type: 'GET',
             url: list_uri
         }).done(_success).fail(_fail);
@@ -102,7 +99,7 @@ function BrowseState(i_state) {
 
 // Display all about the individual you want to stalk
 function StalkState(i_state) {
-    bugme.assert(typeof(i_state) == "object", "Invalid parameter when initializing StalkState\n" + bugme.dump(i_state));
+    bugme.assert(typeof(i_state) === "object", "Invalid parameter when initializing StalkState\n" + bugme.dump(i_state));
     bugme.assert(i_state.stalk_uid, "Invalid parameters, missing stalk_uid\n" + bugme.dump(i_state));
     State.apply(this, arguments);
 
@@ -110,7 +107,7 @@ function StalkState(i_state) {
     var self = this;
     var current_user = this.parent().user();
     var stalk_user = new User({uid: i_state.stalk_uid, cb: _user_cb}); // Load user to stalk
-    var user_lies_uri = c_web_site + '/latest-lies-by/'+i_state.stalk_uid;
+    var user_lies_uri = c_web_site + '/latest-lies-by/' + i_state.stalk_uid + '?' + c_response_format;
     var list_elm = $('#list-of-liars-lies');
     var spinner = $('#spinner');
 
@@ -164,9 +161,6 @@ function StalkState(i_state) {
             beforeSend: function (xhr) {
                 xhr.setRequestHeader("Authorization", current_user.getAuth());
             },
-            headers: {
-                Accept: "application/hal+json"
-            },
             type: 'GET',
             url: user_lies_uri
         }).done(_success).fail(_fail);
@@ -187,7 +181,7 @@ function StalkState(i_state) {
 
 // Take care of logging in/out or editing preferences
 function LoginState(i_state) {
-    bugme.assert(typeof(i_state) == "object", "Invalid parameter when initializing LoginState\n" + bugme.dump(i_state));
+    bugme.assert(typeof(i_state) === "object", "Invalid parameter when initializing LoginState\n" + bugme.dump(i_state));
     State.apply(this, arguments);
 
     //Private vars and consts
@@ -229,15 +223,15 @@ function LoginState(i_state) {
     }
 
     function _verify_input(mail) {
-        if (input_alias.val() == input_alias.attr('def_label')) {
+        if (input_alias.val() === input_alias.attr('def_label')) {
             alert('Enter a name. Any name.');
             return false;
         }
-        if (input_pass.val() == input_pass.attr('def_label')) {
+        if (input_pass.val() === input_pass.attr('def_label')) {
             alert('Pick a password.');
             return false;
         }
-        if (mail === true && input_email.val() == input_email.attr('def_label')) {
+        if (mail === true && input_email.val() === input_email.attr('def_label')) {
             alert('Input a valid email');
             return false;
         }
@@ -346,7 +340,7 @@ function LoginState(i_state) {
 
 // Take care of snapping and uploading images
 function ImageState(i_state) {
-    bugme.assert(typeof(i_state) == "object", "Invalid parameter when initializing ImageState\n" + bugme.dump(i_state));
+    bugme.assert(typeof(i_state) === "object", "Invalid parameter when initializing ImageState\n" + bugme.dump(i_state));
     bugme.assert(i_state.sibling, "ImageState inappropriately called. Missing sibling");
     bugme.log("Created ImageState");
     State.apply(this, arguments);
@@ -461,7 +455,7 @@ function ImageState(i_state) {
     function _success_form_upload(data) {
         if (!alive) return;
         var response = JSON.parse(data.response);
-        if (typeof(response) == "object" && response.uuid) {
+        if (typeof(response) === "object" && response.uuid) {
             sibling.setProof(response, self);
         } else {
             bugme.log("Bad image upload response\n" + bugme.dump(response))
@@ -500,7 +494,7 @@ function ImageState(i_state) {
     this.update = false;
 
     this.cancel = function (new_state) {
-        if (new_state && new_state != c_submit_state) {
+        if (new_state && new_state !== c_submit_state) {
             self.parent().switchState({state: new_state});
         } else {
             self.parent().switchState({state: c_submit_state, resume: sibling});
@@ -535,7 +529,7 @@ function ImageState(i_state) {
     }
 
     // TODO: Add other desktop platforms here (for debugging)
-    if (navigator.platform == "MacIntel") {
+    if (navigator.platform === "MacIntel") {
         setTimeout(_fail, 500);
     }
 
@@ -544,7 +538,7 @@ function ImageState(i_state) {
 
 // Take care of entering and uploading lies
 function LieState(i_state) {
-    bugme.assert(typeof(i_state) == "object", "Invalid parameter when initializing LieState\n" + bugme.dump(i_state));
+    bugme.assert(typeof(i_state) === "object", "Invalid parameter when initializing LieState\n" + bugme.dump(i_state));
     bugme.log("Created LieState");
     State.apply(this, arguments);
 
@@ -586,7 +580,7 @@ function LieState(i_state) {
     }
 
     function _verify_input() {
-        if (input_lie.val() == input_lie.attr('def_label')) {
+        if (input_lie.val() === input_lie.attr('def_label')) {
             alert('Pleeeeaaaaaase!');
             return false;
         }

@@ -113,24 +113,20 @@ function User(i_user) {
         // Make an ajax call to save the object
         $.ajax({
             beforeSend: _admin_before_func,
-            accepts: 'application/hal+json',
             contentType: 'application/hal+json',
             type: i_user.method ? i_user.method : 'POST',
             data: JSON.stringify(_user_hal),
-            url: _user_uri
+            url: _user_uri + '?' + c_response_format
         }).done(_success).fail(_fail);
     } else if (i_user.uid) {
         // Make an ajax call to load the object from the server
         var auth = g_fsm.user() ? g_fsm.user().getAuth() : self.getAuth();
-        var load_uri = c_web_site + '/user/' + i_user.uid;
+        var load_uri = c_web_site + '/user/' + i_user.uid + '?' + c_response_format;
         bugme.log(bugme.dump(i_user));
         bugme.log("Load:" + load_uri);
         $.ajax({
             beforeSend: function (xhr) {
                 xhr.setRequestHeader("Authorization", auth);
-            },
-            headers: {
-                Accept: 'application/hal+json'
             },
             type: 'GET',
             url: load_uri
@@ -143,21 +139,18 @@ function User(i_user) {
         _user_hal.pass[0].value = i_user.pass;
 
         // Make an ajax call to check the supplied credentials
-        var test_dest = c_web_site + '/user/1';
+        var test_dest = c_web_site + '/user/1?' + c_response_format;
         bugme.log('Test dest:' + test_dest);
         $.support.cors = true;
         $.ajax({
             beforeSend: function (xhr) {
                 xhr.setRequestHeader("Authorization", self.getAuth());
             },
-            headers: {
-                Accept: 'application/hal+json'
-            },
             //     xhrFields: {
             //       withCredentials: true
             // },
             type: 'GET',
-            url: c_web_site + '/user/1'
+            url: test_dest
         }).done(_success)
             .fail(_fail);
     } else {
