@@ -3,16 +3,12 @@
  */
 
 
-const user_hal_tpl = (function IIFE() {
-    var tpl = {
-        _links: {type: {href: c_web_site + '/rest\/type\/user\/user'}},
-        name: [{value: null}],
-        mail: [{value: null}],
-        pass: [{value: null}],
-        status: [{value: 1}]
-    };
-    return tpl;
-})();
+const user_hal_tpl = {
+    _links: {type: {href: c_web_site + '/rest\/type\/user\/user'}},
+    name: [{value: null}],
+    mail: [{value: null}],
+    pass: [{value: null}]
+};
 
 
 // User is a value object, it will either GET, POST or PATCH on initialization
@@ -31,14 +27,11 @@ function User(i_user) {
     var _ready = false;
 
     // Private consts
-    const _user_uri = c_web_site + '/entity/user/';
+    const _user_edit_uri = c_web_site + '/entity/user/';
+    const _user_register_uri = c_web_site + '/user/register';
 
     // Private functions
     var _always_cb = i_user.cb ? i_user.cb : function () {
-    };
-
-    var _admin_before_func = function (xhr) {
-        xhr.setRequestHeader("Authorization", g_admin_login_base64);
     };
 
     var _get_pass = function () {
@@ -112,14 +105,23 @@ function User(i_user) {
         _user_hal.mail[0].value = i_user.mail;
         _user_hal.pass[0].value = i_user.pass;
 
+        // Check if we are logged in already
+        var userData = localStorage.getItem(c_userdata_key);
+        var _user_uri = (userData && JSON.parse(userData).name === i_user.name) ? _user_edit_uri : _user_register_uri;
+
         // Make an ajax call to save the object
         $.ajax({
-            beforeSend: _admin_before_func,
             contentType: 'application/hal+json',
-            type: i_user.method ? i_user.method : 'POST',
+            type: 'POST',
             data: JSON.stringify(_user_hal),
             url: _user_uri + '?' + c_response_format
-        }).done(_success).fail(_fail);
+        }).done(function(response){
+
+            bugme.log('Success registering our new user!');
+            bugme.log(response);
+            _success(response);
+            // TODO: Now all we have to do is login properly, so he/she/it can get a token and start posting stuff
+        }).fail(_fail);
     } else if (i_user.uid) {
         // Make an ajax call to load the object from the server
         var auth = g_fsm.user() ? g_fsm.user().getAuth() : self.getAuth();
@@ -148,9 +150,9 @@ function User(i_user) {
             url: login_uri,
             dataType: 'json',
             data: JSON.stringify(loginJson)
-        }).done(function(data, status, xhr){
-            var userdata = data;
-            localStorage.setItem(c_userdata_key, JSON.stringify(userdata));
+        }).done(function (data, status, xhr) {
+
+            localStorage.setItem(c_userdata_key, JSON.stringify(data));
 
             // Store user data for internal use
             _user_hal = user_hal_tpl;

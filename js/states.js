@@ -63,9 +63,9 @@ function BrowseState(i_state) {
     function _fail(xhr, err, exception) {
         list_elm.empty();
         list_elm.append('<div id="000" class="item-lie">'
-        + '<div class="item-title">Somthing broke</div>'
-        + '<div class="item-liar">Blame Master Liar</div>'
-        + '</div>');
+            + '<div class="item-title">Somthing broke</div>'
+            + '<div class="item-liar">Blame Master Liar</div>'
+            + '</div>');
         bugme.log(err);
         spinner.hide();
     }
@@ -90,7 +90,7 @@ function BrowseState(i_state) {
 
     this.cancel = function (new_state) {
         bugme.log("Browse cancel");
-        self.parent().switchState({state: new_state?new_state:c_browse_state});
+        self.parent().switchState({state: new_state ? new_state : c_browse_state});
     };
 
     // Initialize state
@@ -118,7 +118,7 @@ function StalkState(i_state) {
             list_elm.append(stalk_user.render());
             self.update();
         } else {
-            list_elm.append('<p>Error!!!!</p><p>'+msg+'</p>');
+            list_elm.append('<p>Error!!!!</p><p>' + msg + '</p>');
             spinner.hide();
         }
     }
@@ -145,7 +145,7 @@ function StalkState(i_state) {
         if (stalk_user && stalk_user.isReady()) {
             list_elm.append(stalk_user.render());
         }
-        list_elm.append("<p>Mucho error!</p><p>"+err+"</p>");
+        list_elm.append("<p>Mucho error!</p><p>" + err + "</p>");
         spinner.hide();
     }
 
@@ -175,7 +175,7 @@ function StalkState(i_state) {
 
     this.cancel = function (new_state) {
         bugme.log("Stalk cancel");
-        self.parent().switchState({state: new_state?new_state:c_browse_state});
+        self.parent().switchState({state: new_state ? new_state : c_browse_state});
         _cleanup();
     };
 }
@@ -188,7 +188,7 @@ function LoginState(i_state) {
 
     //Private vars and consts
     i_state.parent = null;
-    bugme.log("LoginState input\n"+bugme.dump(i_state, 1));
+    bugme.log("LoginState input\n" + bugme.dump(i_state, 1));
     var self = this;
     var alive = true;
     var current_user = this.parent().user();
@@ -237,6 +237,14 @@ function LoginState(i_state) {
             alert('Input a valid email');
             return false;
         }
+        if (input_email.val() !== input_email.attr('def_label')) {
+            // E-mail validation regex borrowed from http://stackoverflow.com/questions/46155/validate-email-address-in-javascript
+            var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            if (!re.test(input_email.val())) {
+                alert('E-mail address appears to be malformed');
+                return false;
+            }
+        }
         return true;
     }
 
@@ -249,7 +257,7 @@ function LoginState(i_state) {
     this.update = false;
 
     this.done = function (msg) {
-        bugme.log("Login done\n"+msg);
+        bugme.log("Login done\n" + msg);
         if (!alive) {
             bugme.log("...called on dead object!");
             return;
@@ -277,7 +285,7 @@ function LoginState(i_state) {
             bugme.log("Cancel login called on dead object");
             return;
         }
-        self.parent().switchState({state: new_state?new_state:c_browse_state});
+        self.parent().switchState({state: new_state ? new_state : c_browse_state});
         _cleanup();
     };
 
@@ -289,24 +297,33 @@ function LoginState(i_state) {
         var mail = current_user.getMail() ? current_user.getMail() : input_email.attr('def_label');
         input_email.val(mail);
 
-        if (btn_edit) {
-            btn_edit.on(event_sel, function () {
-                alert('Edit settings not implemented');
-                return false;
-            });
-        }
+        btn_edit.on(event_sel, function () {
+            bugme.log("Button edit user pressed");
+            if (_verify_input(false)) {
+                var user_input = {
+                    name: input_alias.val(),
+                    pass: input_pass.val(),
+                    edit: true,
+                    cb: self.done
+                };
+                if (input_email.val().trim() !== input_email.attr('def_label').trim()) {
+                    user_input.mail = input_email.val().trim();
+                }
+                current_user = new User(user_input);
+            }
+            return false;
+        });
 
         btn_logout.on(event_sel, function () {
             bugme.log("Button logout pressed");
             current_user = null;
+            localStorage.removeItem(c_userdata_key);
             self.done();
             return false;
         });
 
         btn_login.hide();
-        if (btn_create) {
-            btn_create.hide();
-        }
+        btn_create.hide();
     } else {
         btn_login.on(event_sel, function () {
             bugme.log("Button login pressed");
@@ -316,25 +333,21 @@ function LoginState(i_state) {
             return false;
         });
 
-        if (btn_create) {
-            btn_create.on(event_sel, function () {
-                bugme.log("Button create user pressed");
-                if (_verify_input(true)) {
-                    current_user = new User({
-                        name: input_alias.val(),
-                        pass: input_pass.val(),
-                        mail: input_email.val(),
-                        edit: true,
-                        cb: self.done
-                    });
-                }
-                return false;
-            });
-        }
+        btn_create.on(event_sel, function () {
+            bugme.log("Button create user pressed");
+            if (_verify_input(true)) {
+                current_user = new User({
+                    name: input_alias.val(),
+                    pass: input_pass.val(),
+                    mail: input_email.val(),
+                    edit: true,
+                    cb: self.done
+                });
+            }
+            return false;
+        });
 
-        if (btn_edit) {
-            btn_edit.hide();
-        }
+        btn_edit.hide();
         btn_logout.hide();
     }
 
@@ -404,7 +417,7 @@ function LieState(i_state) {
     this.update = false;
 
     this.cancel = function (new_state) {
-        self.parent().switchState({state: new_state?new_state:c_browse_state});
+        self.parent().switchState({state: new_state ? new_state : c_browse_state});
         _cleanup();
     };
 
@@ -459,11 +472,11 @@ function LieState(i_state) {
                 type: 'POST',
                 data: JSON.stringify(_img_hal),
                 url: c_web_site + '/entity/file?_format=hal_json'
-            }).done(function(response){
+            }).done(function (response) {
 
                 bugme.log('Succeded uploading image');
                 proof = response;
-            }).fail(function(xhr, err){
+            }).fail(function (xhr, err) {
 
                 bugme.log('Failed to upload image');
                 bugme.log(err);

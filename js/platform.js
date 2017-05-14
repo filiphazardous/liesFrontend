@@ -33,6 +33,10 @@ switch (g_platform) {
             bugme.log("document ready");
             g_fsm = new FSM(new BootstrapPlatform());
         });
+        $(window).unload(function() {
+            // User is logged out, so remove user data
+            localStorage.removeItem(c_userdata_key);
+        });
         break;
 
     default:
